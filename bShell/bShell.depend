@@ -1,0 +1,19 @@
+# depslib dependency file v1.0
+1490922015 source:/home/knidarkness/Documents/Work/bShell/bShell/main.cpp
+	<iostream>
+	"interpreter.h"
+
+1490918994 /home/knidarkness/Documents/Work/bShell/bShell/include/pwd.h
+	<string>
+
+1490922555 /home/knidarkness/Documents/Work/bShell/bShell/include/interpreter.h
+	<boost/filesystem.hpp>
+	<string>
+	<sys/types.h>
+	<dirent.h>
+	<iostream>
+	<vector>
+
+1490921965 source:/home/knidarkness/Documents/Work/bShell/bShell/src/interpreter.cpp
+	"interpreter.h"
+
