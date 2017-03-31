@@ -72,7 +72,7 @@ void interpreter::start_process(std::string command, std::string args[]){
     else if(processID == 0)
     {
         std::string path = "bin/" + command;
-        execl("bin/test", "bin/test", (char *)NULL);
+        execl(path.c_str(), path.c_str(), (char *)NULL);
         char errstr[] = "Error calling execl, exiting the child.\n";
         write(STDERR_FILENO, errstr, sizeof(errstr));
         _exit(1);
