@@ -5,6 +5,7 @@ interpreter::interpreter()
     boost::filesystem::path full_path( boost::filesystem::current_path());
     curPath = full_path.generic_string();
     update_commands("bin");
+    help();
 }
 
 interpreter::~interpreter()
@@ -74,8 +75,14 @@ void interpreter::update_commands(const std::string& path){
     }
 }
 
-void interpreter::help(std::vector<std::string> input){
-    std::cout << "some useful help goes here" << std::endl;
+void interpreter::help(){
+    std::cout << "Welcome to the beerShell!" << std::endl;
+    std::cout << "Available commands are help, cd, pwd, exit and:\n============\n";
+    std::vector<std::string> coms = getAvailable_commands();
+    for(int i = 0; i < coms.size(); i++){
+        std::cout << coms.at(i) << std::endl;
+    }
+    std::cout << "============\nHave a great day" << std::endl;
 }
 
 void interpreter::stop(std::vector<std::string> argv){
@@ -100,7 +107,7 @@ int interpreter::executeBuiltIn(std::vector<std::string> args){
     }
 
     if (command == "help"){
-        help(args);
+        help();
         return 0;
     }
 
@@ -116,10 +123,6 @@ int interpreter::executeBuiltIn(std::vector<std::string> args){
 
     if (command == "upd"){
         update_commands("bin");
-        std::vector<std::string> coms = getAvailable_commands();
-        for(int i = 0; i < coms.size(); i++){
-            std::cout << coms.at(i) << std::endl;
-        }
         return 0;
     }
     return -1;
@@ -171,12 +174,13 @@ void interpreter::start_process(std::vector<std::string> command){
     }
     else if(processID == 0)
     {
-        const char* execArgs[command.size()];
-        for(int i = 1; i < command.size(); i++){
-            execArgs[i-1] = command.at(i).c_str();
+        char *args[command.size()+1];// = malloc((command.size() + 1) * sizeof(char *));
+        for(int i = 0; i < command.size(); i++){
+            args[i] = (char*) command.at(i).c_str();
         }
+        args[command.size()] = NULL;
         std::string path = "bin/" + command.at(0);
-        execl(path.c_str(), path.c_str(), execArgs, (char*) NULL);
+        execvp(path.c_str(), args);
         char errstr[] = "Command not recognized.\nUse help to get.\n";
         write(STDERR_FILENO, errstr, sizeof(errstr));
         _exit(1);

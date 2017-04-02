@@ -3,27 +3,15 @@
 
 using namespace std;
 void loop();
+void process_file(const char *arg);
 
 int main(int argc, const char *argv[])
 {
-    cout << argc << endl;
     if(argc == 1){
         loop();
+    } else {
+        process_file(argv[1]);
     }
-    interpreter shell;
-    vector<string> coms = shell.getAvailable_commands();
-    for(int i = 0; i < coms.size(); i++){
-        cout << coms.at(i) << endl;
-    }
-    //shell.process(argv[1], args);
-    //shell.start_process("as", args);
-    /*cout << shell.getCurrentPath() << endl;
-    shell.cd("../");
-    cout << shell.getCurrentPath() << endl;
-    shell.cd("..");
-    cout << shell.getCurrentPath() << endl;
-    shell.cd("..");
-    cout << shell.getCurrentPath() << endl;*/
     return 0;
 }
 
@@ -31,15 +19,28 @@ void loop(){
     string line;
     int retCode = 0;
     interpreter shell;
-    vector<string> coms = shell.getAvailable_commands();
-    for(int i = 0; i < coms.size(); i++){
-        cout << coms.at(i) << endl;
-    }
     while(retCode == 0){
         cout << shell.getCurrentPath() << "$ ";
         getline(cin, line);
         if(line != ""){
         retCode = shell.process(line);
         }
+    }
+}
+
+void process_file(const char *arg){
+    ifstream myfile (arg);
+    string line;
+    interpreter shell;
+    if (myfile.is_open()) {
+        while ( getline (myfile,line) )
+        {
+            shell.process(line);
+            //cout << line << '\n';
+        }
+        myfile.close();
+    }
+    else {
+        cout << "Unable to open file";
     }
 }

@@ -23,21 +23,21 @@ class interpreter
         interpreter();
         virtual ~interpreter();
         std::string getCurrentPath();
-        void cd(std::vector<std::string> argv);
-        void help(std::vector<std::string> input);
         std::vector<std::string>& getAvailable_commands();
-        void update_commands(const std::string& path);
         int process(std::string command);
     protected:
 
     private:
         std::string curPath;
         std::vector<std::string> available_commands;
+        void update_commands(const std::string& path);
         bool isCommand(std::string input);
         int executeBuiltIn(std::vector<std::string> input);
         void stop(std::vector<std::string> input);
         void start_process(std::vector<std::string> command);
         void pwd(std::vector<std::string> argv);
+        void cd(std::vector<std::string> argv);
+        void help();
 };
 
 #endif // INTERPRETER_H
