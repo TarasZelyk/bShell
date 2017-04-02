@@ -3,6 +3,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 #include <string>
 #include <sys/types.h>

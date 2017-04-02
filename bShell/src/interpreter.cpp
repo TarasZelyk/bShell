@@ -5,7 +5,6 @@ interpreter::interpreter()
     boost::filesystem::path full_path( boost::filesystem::current_path());
     curPath = full_path.generic_string();
     update_commands("bin");
-    help();
 }
 
 interpreter::~interpreter()
@@ -14,7 +13,7 @@ interpreter::~interpreter()
 }
 
 std::string interpreter::getCurrentPath(){
-    return interpreter::curPath;
+    return boost::filesystem::current_path().string();
 }
 
 void interpreter::pwd(std::vector<std::string> argv){
@@ -45,7 +44,7 @@ void interpreter::cd(std::vector<std::string> argv){
     if(dir){
         boost::filesystem::path newAbsPath = boost::filesystem::canonical(argv.at(1), getCurrentPath());
         std::string absPath = newAbsPath.generic_string();
-        curPath = absPath;
+        boost::filesystem::current_path(absPath);
     }
 }
 
@@ -140,6 +139,9 @@ int interpreter::process(std::string command){
             args.push_back(*iter);
     }
 
+    for(int i = 0; i < args.size(); i++){
+        args.at(i) = boost::replace_all_copy(args.at(i), "\"", "");;
+    }
 
     int retCode;
     if((retCode = executeBuiltIn(args)) == -1){
@@ -179,7 +181,7 @@ void interpreter::start_process(std::vector<std::string> command){
             args[i] = (char*) command.at(i).c_str();
         }
         args[command.size()] = NULL;
-        std::string path = "bin/" + command.at(0);
+        std::string path = curPath + "/bin/" + command.at(0);
         execvp(path.c_str(), args);
         char errstr[] = "Command not recognized.\nUse help to get.\n";
         write(STDERR_FILENO, errstr, sizeof(errstr));

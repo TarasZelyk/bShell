@@ -1,16 +1,40 @@
 #include <iostream>
 #include "interpreter.h"
+#include <boost/regex.hpp>
 
 using namespace std;
 void loop();
-void process_file(const char *arg);
+void process_file(string arg);
 
 int main(int argc, const char *argv[])
 {
     if(argc == 1){
         loop();
     } else {
-        process_file(argv[1]);
+        vector<string> arguments(argv + 1, argv + argc);
+        string req = "";
+        for(int i = 0; i < arguments.size(); i++){
+            req += arguments.at(i);
+            req += (i < arguments.size() - 1) ? " " : "";
+        }
+        vector<string> args;
+        cout << req << endl;
+        boost::regex splitArgs("(\"[^\"]+\"|[^\\s\"]+)");
+
+        boost::sregex_token_iterator iter(req.begin(), req.end(), splitArgs, 0);
+        boost::sregex_token_iterator end;
+
+        for(; iter != end; ++iter ) {
+                args.push_back(*iter);
+        }
+
+        for(int i = 0; i < args.size(); i++){
+            args.at(i) = boost::replace_all_copy(args.at(i), "\"", "");;
+        }
+        for(int i = 0; i < arguments.size(); i++){
+            cout << arguments.at(i) << endl;
+            process_file(arguments.at(i));
+        }
     }
     return 0;
 }
@@ -28,19 +52,18 @@ void loop(){
     }
 }
 
-void process_file(const char *arg){
-    ifstream myfile (arg);
+void process_file(string arg){
+    ifstream myfile (arg.c_str());
     string line;
     interpreter shell;
     if (myfile.is_open()) {
         while ( getline (myfile,line) )
         {
             shell.process(line);
-            //cout << line << '\n';
         }
         myfile.close();
     }
     else {
-        cout << "Unable to open file";
+        cout << "Unable to open file\n";
     }
 }
