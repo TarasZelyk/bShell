@@ -1,3 +1,11 @@
+/*
+Developed by Nina Bondar for the beerShell.
+Ask bondar_n@ucu.edu.ua for all the questions and bugs.
+
+Version 1.0.1
+April 1, 2017
+*/
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
@@ -7,6 +15,11 @@ namespace fs = boost::filesystem;
 #include <iostream>
 
 void copy_file(boost::filesystem::path old_file, boost::filesystem::path new_file, bool force_overwrite = false) {
+    /*
+     * Bug on removin old file if user selected "skip" option 
+     * fixed by Sergey Dubovyk,
+     * discovered by Taras Zelyk.
+     */
     if (!fs::exists(old_file)) {
         std::cout << "No such file: " << old_file << std::endl;
         return;
@@ -62,6 +75,11 @@ int main(int ac, char *av[]) {
         if (vm.count("force")) {
             force_overwrite = true;
         }
+        /*
+         * Bug on multiple files: only 1s file proceeded 
+         * fixed by Sergey Dubovyk,
+         * discovered by Taras Zelyk.
+         */
         if (vm.count("files")) {
             std::vector<boost::filesystem::path> files = vm["files"].as<std::vector<boost::filesystem::path>>();
             if (files.size() == 2) {

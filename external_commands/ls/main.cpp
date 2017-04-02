@@ -1,3 +1,12 @@
+/*
+Developed by Taras Zelyk and Sergey Dubovyk for the beerShell.
+Ask zelyk@ucu.edu.ua and dubovyk@ucu.edu.ua 
+for all the questions and bugs.
+
+Version 1.0.4
+April 2, 2017
+*/
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
@@ -8,7 +17,6 @@ namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
 size_t get_size(fs::path path) {
-
     size_t size = 0;
     if (!fs::is_directory(path)) {
         size = fs::file_size(path);
@@ -23,6 +31,9 @@ size_t get_size(fs::path path) {
 }
 
 void ls(fs::path path, std::string sort = "N", bool detailed = false, bool reverse = false) {
+    /*
+     * Minor bugfixes S.Dubovyk.
+     */
     if (!fs::exists(path))
         std::cout << "No such file or directory." << std::endl;
 
@@ -77,6 +88,11 @@ void ls(fs::path path, std::string sort = "N", bool detailed = false, bool rever
     }
 
     for (fs::path p : paths) {
+        /*
+         * Bug: wrong output format 
+         * fixed by Sergey Dubovyk,
+         * discovered by Sergey Dubovyk.
+         */
         if (detailed) {
             try {
                 size_t size = get_size(p);
@@ -108,6 +124,9 @@ void ls(fs::path path, std::string sort = "N", bool detailed = false, bool rever
 }
 
 int main(int ac, char *av[]) {
+/*
+Bugfixing by Dubovyk Sergey + added some descs and style updates.
+*/
     try {
         po::options_description desc(
                 "Usage: ls [OPTION]... [FILE]...\nList information about"

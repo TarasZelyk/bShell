@@ -1,3 +1,11 @@
+/*
+Developed by Yasya Shpot for the beerShell.
+Ask n.y.shpot@ucu.edu.ua for all the questions and bugs.
+
+Version 1.0.0
+April 2, 2017
+*/
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
@@ -7,6 +15,9 @@ namespace fs = boost::filesystem;
 #include <iostream>
 
 void remove_file(boost::filesystem::path file, bool force_removal = false, bool remove_directories = false) {
+    /*
+     Force removal bug fix by Sergey Dubovyk.
+    */
     if (!fs::exists(file)) {
         std::cout << "No such file: " << file << std::endl;
         return;

@@ -1,3 +1,11 @@
+/*
+Developed by Yasya Shpot for the beerShell.
+Ask n.y.shpot@ucu.edu.ua for all the questions and bugs.
+
+Version 1.0.1
+April 1, 2017
+*/
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 

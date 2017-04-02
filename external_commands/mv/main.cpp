@@ -1,3 +1,11 @@
+/*
+Developed by Nina Bondar for the beerShell.
+Ask bondar_n@ucu.edu.ua for all the questions and bugs.
+
+Version 1.0.1
+April 2, 2017
+*/
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 

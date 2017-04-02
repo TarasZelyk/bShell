@@ -1,3 +1,11 @@
+/*
+Developed by Sergey Dubovyk for the beerShell.
+Ask dubovyk@ucu.edu.ua for all the questions and bugs.
+
+Version 1.1.3
+April 2, 2017
+*/
+
 #include "interpreter.h"
 
 interpreter::interpreter()
@@ -27,6 +35,10 @@ void interpreter::pwd(std::vector<std::string> argv){
 }
 
 void interpreter::cd(std::vector<std::string> argv){
+    /*
+     * Bug about storing new cd path in the bShell initial dir fixed by Taras Zelyk,
+     * discovered by Nina Bondar.
+     */
     for(int i = 1; i < argv.size(); i++){
         if(argv.at(i) == "-h" || argv.at(i) == "--help"){
             std::cout << "Use this command to get change the working directory" << std::endl;
@@ -53,6 +65,10 @@ std::vector<std::string>& interpreter::getAvailable_commands(){
 }
 
 void interpreter::update_commands(const std::string& path){
+    /*
+     * Bug not clearing the commands list before update fixed by Yasya Shpot,
+     * discovered by Nina Bondar.
+     */
     available_commands.clear();
     if (!path.empty())
     {
