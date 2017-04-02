@@ -12,7 +12,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <sys/wait.h>
+
 #define die(e) do { fprintf(stderr, "%s\n", e); exit(EXIT_FAILURE); } while (0);
+#define BAD_COMMAND "You entered not a command. Use help to get a list of all commands."
 
 class interpreter
 {
@@ -20,18 +23,21 @@ class interpreter
         interpreter();
         virtual ~interpreter();
         std::string getCurrentPath();
-        std::string cd(std::string relPath);
-        std::string pwd();
+        void cd(std::vector<std::string> argv);
+        void help(std::vector<std::string> input);
         std::vector<std::string>& getAvailable_commands();
         void update_commands(const std::string& path);
-        void process(std::string command, std::string args[]);
-        void start_process(std::string command, std::string args[]);
+        int process(std::string command);
     protected:
 
     private:
         std::string curPath;
         std::vector<std::string> available_commands;
         bool isCommand(std::string input);
+        int executeBuiltIn(std::vector<std::string> input);
+        void stop(std::vector<std::string> input);
+        void start_process(std::vector<std::string> command);
+        void pwd(std::vector<std::string> argv);
 };
 
 #endif // INTERPRETER_H
