@@ -8,7 +8,7 @@ set(SOURCE_FILES
 
 add_executable(ls ${SOURCE_FILES})
 
-FIND_PACKAGE(Boost COMPONENTS system program_options filesystem signals thread REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS system program_options regex filesystem signals thread REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 target_link_libraries(ls ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 

@@ -1,22 +1,19 @@
-/*
-Developed by Taras Zelyk and Sergey Dubovyk for the beerShell.
-Ask zelyk@ucu.edu.ua and dubovyk@ucu.edu.ua 
-for all the questions and bugs.
-
-Version 1.0.4
-April 2, 2017
-*/
-
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <boost/regex.hpp>
 #include <iostream>
 #include <chrono>
 #include <iomanip>
+#include <pwd.h>
+#include <grp.h>
+#include <sys/stat.h>
+
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
 size_t get_size(fs::path path) {
+
     size_t size = 0;
     if (!fs::is_directory(path)) {
         size = fs::file_size(path);
@@ -31,17 +28,15 @@ size_t get_size(fs::path path) {
 }
 
 void ls(fs::path path, std::string sort = "N", bool detailed = false, bool reverse = false) {
-    /*
-     * Minor bugfixes S.Dubovyk.
-     */
-    if (!fs::exists(path))
-        std::cout << "No such file or directory." << std::endl;
 
     std::vector<fs::path> paths;
-    if (fs::is_directory(path)) {
-        fs::directory_iterator end_itr;
-        copy(fs::directory_iterator(path), fs::directory_iterator(), back_inserter(paths));
+    if (!fs::exists(path)) {
 
+        std::cout << "No such file or directory." << std::endl;
+        return;
+    }
+    if (fs::is_directory(path)) {
+        copy(fs::directory_iterator(path), fs::directory_iterator(), back_inserter(paths));
         if (sort != "U") {
             std::function<bool(boost::filesystem::path, boost::filesystem::path)> sort_by_name = [](const fs::path &a,
                                                                                                     const fs::path &b) -> bool {
@@ -88,14 +83,18 @@ void ls(fs::path path, std::string sort = "N", bool detailed = false, bool rever
     }
 
     for (fs::path p : paths) {
-        /*
-         * Bug: wrong output format 
-         * fixed by Sergey Dubovyk,
-         * discovered by Sergey Dubovyk.
-         */
+        struct stat info;
+        stat(p.c_str(), &info);
         if (detailed) {
             try {
                 size_t size = get_size(p);
+                std::cout << std::setw(4) << std::right << fs::status(p).permissions() << " ";
+
+                struct passwd *pw = getpwuid(info.st_uid);
+                struct group *gr = getgrgid(info.st_gid);
+                std::cout << std::setw(10) << std::right << pw->pw_name << " ";
+                std::cout << std::setw(10) << std::right << gr->gr_name << " ";
+
                 std::cout << std::setw(12) << std::right << size << " ";
 
                 time_t tt = fs::last_write_time(p);
@@ -109,24 +108,22 @@ void ls(fs::path path, std::string sort = "N", bool detailed = false, bool rever
                 std::cout << p.string() << " " << e.what() << '\n';
             }
         }
-        if (p.string().find("./") == 0) {
-            if (!fs::is_directory(p)) {
-                std::cout << p.string().substr(2) << std::endl;
-            } else {
-                std::cout << p.string().substr(1) << std::endl;
-            }
-        } else {
-            std::cout << p.string() << std::endl;
-
+        std::string filename = p.filename().string();
+        if (fs::is_directory(p)) {
+            filename = "/" + filename;
         }
+        if ((info.st_mode & S_IEXEC) != 0 and !fs::is_directory(p))
+            filename += "*";
+        if (fs::symlink_status(p).type() == fs::symlink_file)
+            filename += "@";
+
+        std::cout << filename << std::endl;
+
     }
 
 }
 
 int main(int ac, char *av[]) {
-/*
-Bugfixing by Dubovyk Sergey + added some descs and style updates.
-*/
     try {
         po::options_description desc(
                 "Usage: ls [OPTION]... [FILE]...\nList information about"
@@ -137,6 +134,7 @@ Bugfixing by Dubovyk Sergey + added some descs and style updates.
                 (",l", "Use a long listing format")
                 (",N", "sort alphabetically by name extension")
                 (",r", "reverse order while sorting")
+                (",R", "list subdirectories recursively")
                 (",S", "sort by file size, largest first")
                 (",t", "sort by modification time, newest first")
                 (",U", "do not sort; list entries in directory order")
@@ -159,6 +157,11 @@ Bugfixing by Dubovyk Sergey + added some descs and style updates.
             std::cout << desc << "\n";
             return 0;
         }
+        bool recursive = false;
+        if (vm.count("-R")) {
+            recursive = true;
+        }
+
         bool reverse = false;
         if (vm.count("-r")) {
             reverse = true;
@@ -181,8 +184,19 @@ Bugfixing by Dubovyk Sergey + added some descs and style updates.
         } else {
             path = fs::path(".");
         }
+        if (recursive) {
+            for (fs::recursive_directory_iterator it(path);
+                 it != fs::recursive_directory_iterator(); ++it) {
+                if (fs::is_directory(*it)) {
+                    std::cout << it->path().string() << ":" << std::endl;
+                    ls(it->path(), sort, detailed, reverse);
+                    std::cout << std::endl;
+                }
+            }
+        } else {
+            ls(path, sort, detailed, reverse);
 
-        ls(path, sort, detailed, reverse);
+        }
 
     }
     catch (std::exception &e) {
