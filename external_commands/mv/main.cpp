@@ -33,11 +33,13 @@ void move_file(boost::filesystem::path old_file, boost::filesystem::path new_fil
 int main(int ac, char *av[]) {
     try {
 
-        po::options_description desc("Allowed options");
+        po::options_description desc("Usage: mv [OPTION]... SOURCE... DIRECTORY\n"
+                                             "Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.\n\n"
+                                             "Allowed options");
         desc.add_options()
                 ("help,h", "Display help message")
                 ("force,f", "Do not prompt before overwriting")
-                ("files", po::value<std::vector<boost::filesystem::path> >(), "Input file(s) and destination");
+                ("files", po::value<std::vector<boost::filesystem::path>>(), "Input file(s) and destination");
 
         po::positional_options_description positionalOptions;
         positionalOptions.add("files", -1);
@@ -60,7 +62,7 @@ int main(int ac, char *av[]) {
             force_overwrite = true;
         }
         if (vm.count("files")) {
-            std::vector<boost::filesystem::path> files = vm["files"].as<std::vector<boost::filesystem::path> >();
+            std::vector<boost::filesystem::path> files = vm["files"].as<std::vector<boost::filesystem::path>>();
             if (files.size() == 2) {
                 move_file(files[0], files[1], force_overwrite);
             } else if (files.size() > 2) {
@@ -75,7 +77,7 @@ int main(int ac, char *av[]) {
                         std::cout << "No such file: " << file << std::endl;
                         return 0;
                     }
-                    move_file(file, directory / file,force_overwrite);
+                    move_file(file, directory / file, force_overwrite);
 
                 }
             } else {

@@ -17,10 +17,11 @@ void make_dir(boost::filesystem::path dir) {
 int main(int ac, char *av[]) {
     try {
 
-        po::options_description desc("Allowed options");
+        po::options_description desc("Usage: mkdir [OPTION]... DIRECTORY...\n"
+ "Create the DIRECTORY(ies), if they do not already exist.\n\nAllowed options");
         desc.add_options()
                 ("help,h", "Display help message")
-                ("dirs", po::value<std::vector<boost::filesystem::path>>(), "path to directory)");
+                ("dirs", po::value<std::vector<boost::filesystem::path>>(), "path(s) to directory(ies)");
 
         po::positional_options_description positionalOptions;
         positionalOptions.add("dirs", -1);
