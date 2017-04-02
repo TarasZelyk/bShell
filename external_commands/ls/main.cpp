@@ -1,3 +1,11 @@
+
+/*
+Developed by Taras Zelyk for the beerShell.
+Ask zelyk@ucu.edu.ua for all the questions and bugs.
+Version 1.0.4
+April 2, 2017
+*/
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/regex.hpp>
@@ -28,7 +36,9 @@ size_t get_size(fs::path path) {
 }
 
 void ls(fs::path path, std::string sort = "N", bool detailed = false, bool reverse = false) {
-
+    /*
+     * Minor bugfixes S.Dubovyk.
+     */
     std::vector<fs::path> paths;
     if (!fs::exists(path)) {
 
@@ -83,6 +93,11 @@ void ls(fs::path path, std::string sort = "N", bool detailed = false, bool rever
     }
 
     for (fs::path p : paths) {
+        /*
+        * Bug: wrong output format
+        * fixed by Sergey Dubovyk,
+        * discovered by Sergey Dubovyk.
+        */
         struct stat info;
         stat(p.c_str(), &info);
         if (detailed) {
@@ -124,6 +139,9 @@ void ls(fs::path path, std::string sort = "N", bool detailed = false, bool rever
 }
 
 int main(int ac, char *av[]) {
+    /*
+     * Bugfixing by Dubovyk Sergey + added some descs and style updates.
+     */
     try {
         po::options_description desc(
                 "Usage: ls [OPTION]... [FILE]...\nList information about"
