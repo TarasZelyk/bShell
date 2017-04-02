@@ -1,9 +1,0 @@
-# depslib dependency file v1.0
-1490879342 source:/home/knidarkness/Documents/testshell/testShell/main.cpp
-	<boost/program_options.hpp>
-	<boost/filesystem.hpp>
-	<iostream>
-	<iterator>
-
-1482412312 /home/knidarkness/Downloads/boost_1_63_0/libs/iterator
-

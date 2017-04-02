@@ -12,7 +12,8 @@ void remove_file(boost::filesystem::path file, bool force_removal = false, bool 
         return;
     }
     if (fs::is_directory(file) && !remove_directories) {
-        std::cout << "Can not remove " << file << ": It's a directory.\nUse option -R to remove directories. " << std::endl;
+        std::cout << "Can not remove " << file << ": It's a directory.\nUse option -R to remove directories. "
+                  << std::endl;
         return;
     }
 
@@ -33,7 +34,8 @@ void remove_file(boost::filesystem::path file, bool force_removal = false, bool 
 int main(int ac, char *av[]) {
     try {
 
-        po::options_description desc("Allowed options");
+        po::options_description desc("Usage: rm [OPTION]... [FILE]...\nRemove the FILE(s).\n"
+                                             "\nAllowed options");
         desc.add_options()
                 ("help,h", "Display help message")
                 ("force,f", "Do not prompt before overwriting")
