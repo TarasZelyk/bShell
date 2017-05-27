@@ -157,7 +157,7 @@ int interpreter::process(std::string command){
         std::vector<std::string> args;
 
         std::string outname, inname, errname;
-
+        bool errtoout = false;
         boost::regex splitArgs("((\"|')[^(\"|')]+(\"|')|[^\\s(\"|')]+)");
 
         boost::sregex_token_iterator iter(commands.at(i).begin(), commands.at(i).end(), splitArgs, 0);
@@ -173,7 +173,10 @@ int interpreter::process(std::string command){
                 } else if (*iter == "<"){
                     iter++;
                     inname = *iter;
-                } else {
+                } else if (*iter == "2>&1"){
+                    errtoout = true;
+                }
+                else {
                     args.push_back(*iter);
                 }
         }
@@ -184,7 +187,7 @@ int interpreter::process(std::string command){
 
         int retCode;
         if((retCode = executeBuiltIn(args)) == -1){
-            start_process(args, outname, errname, inname);
+            start_process(args, outname, errname, inname, errtoout);
         }
     }
     return 0;
@@ -201,7 +204,8 @@ bool interpreter::isCommand(std::string input){
     return false;
 }
 
-void interpreter::start_process(std::vector<std::string> command, std::string outname, std::string errname, std::string inname){
+void interpreter::start_process(std::vector<std::string> command, std::string outname, std::string errname, std::string inname,
+                                bool errtoout){
     pid_t processID = fork();
     pid_t wpid;
     int status;
@@ -234,6 +238,10 @@ void interpreter::start_process(std::vector<std::string> command, std::string ou
             int fd = open(inname.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
             dup2(fd, STDIN_FILENO);
             close(fd);
+        }
+
+        if (errtoout == true){
+            dup2(1, 2);
         }
 
         if(boost::filesystem::exists(path)) {
