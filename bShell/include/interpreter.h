@@ -22,7 +22,6 @@ class interpreter
 {
     public:
         interpreter();
-        virtual ~interpreter();
         std::string getCurrentPath();
         std::vector<std::string>& getAvailable_commands();
         int process(std::string command);

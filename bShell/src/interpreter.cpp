@@ -15,11 +15,6 @@ interpreter::interpreter()
     update_commands("bin");
 }
 
-interpreter::~interpreter()
-{
-    //dtor
-}
-
 std::string interpreter::getCurrentPath(){
     return boost::filesystem::current_path().string();
 }
@@ -57,6 +52,8 @@ void interpreter::cd(std::vector<std::string> argv){
         boost::filesystem::path newAbsPath = boost::filesystem::canonical(argv.at(1), getCurrentPath());
         std::string absPath = newAbsPath.generic_string();
         boost::filesystem::current_path(absPath);
+    } else {
+        std::cout << "Error. No such directory" << std::endl;
     }
 }
 
@@ -161,12 +158,7 @@ int interpreter::process(std::string command){
 
     int retCode;
     if((retCode = executeBuiltIn(args)) == -1){
-        if(isCommand(args.at(0))){
-            start_process(args);
-        } else {
-            std::cout << BAD_COMMAND << std::endl;
-        }
-    } else {
+        start_process(args);
     }
     return 0;
 }
@@ -198,7 +190,11 @@ void interpreter::start_process(std::vector<std::string> command){
         }
         args[command.size()] = NULL;
         std::string path = curPath + "/bin/" + command.at(0);
-        execvp(path.c_str(), args);
+        if(boost::filesystem::exists(path)) {
+            execvp(path.c_str(), args);
+        } else{
+            execvp(command.at(0).c_str(), args);
+        }
         char errstr[] = "Command not recognized.\nUse help to get.\n";
         write(STDERR_FILENO, errstr, sizeof(errstr));
         _exit(1);
