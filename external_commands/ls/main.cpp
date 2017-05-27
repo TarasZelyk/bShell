@@ -128,7 +128,7 @@ void ls(fs::path path, std::string sort = "N", bool detailed = false,
         if (fs::is_directory(p)) {
             filename = "/" + filename;
         }
-        if (show_indicators == true) {
+        if (show_indicators) {
             if ((info.st_mode & S_IEXEC) != 0 and !fs::is_directory(p))
                 filename += "*";
 
@@ -220,7 +220,7 @@ int main(int ac, char *av[]) {
                 }
             }
         } else {
-            ls(path, sort, detailed, reverse);
+            ls(path, sort, detailed, reverse,show_indicators);
 
         }
 
