@@ -35,7 +35,8 @@ size_t get_size(fs::path path) {
     return size;
 }
 
-void ls(fs::path path, std::string sort = "N", bool detailed = false, bool reverse = false) {
+void ls(fs::path path, std::string sort = "N", bool detailed = false,
+        bool reverse = false, bool show_indicators = false) {
     /*
      * Minor bugfixes S.Dubovyk.
      */
@@ -127,11 +128,13 @@ void ls(fs::path path, std::string sort = "N", bool detailed = false, bool rever
         if (fs::is_directory(p)) {
             filename = "/" + filename;
         }
-        if ((info.st_mode & S_IEXEC) != 0 and !fs::is_directory(p))
-            filename += "*";
-        if (fs::symlink_status(p).type() == fs::symlink_file)
-            filename += "@";
+        if (show_indicators == true) {
+            if ((info.st_mode & S_IEXEC) != 0 and !fs::is_directory(p))
+                filename += "*";
 
+            if (fs::symlink_status(p).type() == fs::symlink_file)
+                filename += "@";
+        }
         std::cout << filename << std::endl;
 
     }
@@ -150,6 +153,7 @@ int main(int ac, char *av[]) {
                 ("help,h", "Display help message")
                 ("path", po::value<std::string>(), "path to the directory/file")
                 (",l", "Use a long listing format")
+                (",F", "append indicator (one of *=@) to entries")
                 (",N", "sort alphabetically by name extension")
                 (",r", "reverse order while sorting")
                 (",R", "list subdirectories recursively")
@@ -188,6 +192,10 @@ int main(int ac, char *av[]) {
         if (vm.count("-l")) {
             detailed = true;
         }
+        bool show_indicators = false;
+        if (vm.count("-F")) {
+            show_indicators = true;
+        }
         std::string sort = "name";
         if (vm.count("-S")) { sort = "S"; }
         if (vm.count("-N")) { sort = "N"; }
@@ -207,7 +215,7 @@ int main(int ac, char *av[]) {
                  it != fs::recursive_directory_iterator(); ++it) {
                 if (fs::is_directory(*it)) {
                     std::cout << it->path().string() << ":" << std::endl;
-                    ls(it->path(), sort, detailed, reverse);
+                    ls(it->path(), sort, detailed, reverse, show_indicators);
                     std::cout << std::endl;
                 }
             }
