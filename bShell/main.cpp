@@ -1,6 +1,7 @@
 #include <iostream>
 #include "interpreter.h"
 #include <boost/regex.hpp>
+#include <fstream>
 
 using namespace std;
 void loop();
