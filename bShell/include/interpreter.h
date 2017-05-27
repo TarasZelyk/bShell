@@ -35,7 +35,7 @@ class interpreter
         bool isCommand(std::string input);
         int executeBuiltIn(std::vector<std::string> input);
         void stop(std::vector<std::string> input);
-        void start_process(std::vector<std::string> command);
+        void start_process(std::vector<std::string> command, std::string outname, std::string errname, std::string inname, bool errtoout);
         void pwd(std::vector<std::string> argv);
         void cd(std::vector<std::string> argv);
         void help();
