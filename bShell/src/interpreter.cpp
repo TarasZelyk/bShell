@@ -12,7 +12,7 @@ interpreter::interpreter()
 {
     boost::filesystem::path full_path( boost::filesystem::current_path());
     curPath = full_path.generic_string();
-    update_commands("bin");
+    update_commands(BIN_PATH);
 }
 
 std::string interpreter::getCurrentPath(){
@@ -134,7 +134,7 @@ int interpreter::executeBuiltIn(std::vector<std::string> args){
     }
 
     if (command == "upd"){
-        update_commands("bin");
+        update_commands(BIN_PATH);
         return 0;
     }
     return -1;
@@ -143,7 +143,7 @@ int interpreter::executeBuiltIn(std::vector<std::string> args){
 int interpreter::process(std::string command){
     std::vector<std::string> args;
 
-    boost::regex splitArgs("(\"[^\"]+\"|[^\\s\"]+)");
+        boost::regex splitArgs("(\"[^\"]+\"|[^\\s\"]+)");
 
     boost::sregex_token_iterator iter(command.begin(), command.end(), splitArgs, 0);
     boost::sregex_token_iterator end;
@@ -189,7 +189,7 @@ void interpreter::start_process(std::vector<std::string> command){
             args[i] = (char*) command.at(i).c_str();
         }
         args[command.size()] = NULL;
-        std::string path = curPath + "/bin/" + command.at(0);
+        std::string path = curPath + "/" + BIN_PATH + "/" + command.at(0);
         if(boost::filesystem::exists(path)) {
             execvp(path.c_str(), args);
         } else{
