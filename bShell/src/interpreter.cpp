@@ -6,6 +6,7 @@ Version 1.1.3
 April 2, 2017
 */
 
+#include <fcntl.h>
 #include "interpreter.h"
 
 interpreter::interpreter()
@@ -141,24 +142,50 @@ int interpreter::executeBuiltIn(std::vector<std::string> args){
 }
 
 int interpreter::process(std::string command){
-    std::vector<std::string> args;
+    std::vector<std::string> commands;
 
-        boost::regex splitArgs("(\"[^\"]+\"|[^\\s\"]+)");
+    boost::regex splitCommands("((?:[^\\\\|]+|\\\\\\|?)+)");
 
-    boost::sregex_token_iterator iter(command.begin(), command.end(), splitArgs, 0);
-    boost::sregex_token_iterator end;
+    boost::sregex_token_iterator commIter(command.begin(), command.end(), splitCommands, 0);
+    boost::sregex_token_iterator endIter;
 
-    for(; iter != end; ++iter ) {
-            args.push_back(*iter);
+    for(; commIter != endIter; ++commIter){
+        commands.push_back(*commIter);
     }
 
-    for(int i = 0; i < args.size(); i++){
-        args.at(i) = boost::replace_all_copy(args.at(i), "\"", "");;
-    }
+    for(int i = 0; i < commands.size(); i++){
+        std::vector<std::string> args;
 
-    int retCode;
-    if((retCode = executeBuiltIn(args)) == -1){
-        start_process(args);
+        std::string outname, inname, errname;
+
+        boost::regex splitArgs("((\"|')[^(\"|')]+(\"|')|[^\\s(\"|')]+)");
+
+        boost::sregex_token_iterator iter(commands.at(i).begin(), commands.at(i).end(), splitArgs, 0);
+        boost::sregex_token_iterator end;
+
+        for(; iter != end; ++iter ) {
+                if (*iter == ">"){
+                    iter++;
+                    outname = *iter;
+                } else if (*iter == "2>"){
+                    iter++;
+                    errname = *iter;
+                } else if (*iter == "<"){
+                    iter++;
+                    inname = *iter;
+                } else {
+                    args.push_back(*iter);
+                }
+        }
+
+        for(int i = 0; i < args.size(); i++){
+            args.at(i) = boost::replace_all_copy(args.at(i), "\"", "");;
+        }
+
+        int retCode;
+        if((retCode = executeBuiltIn(args)) == -1){
+            start_process(args, outname, errname, inname);
+        }
     }
     return 0;
 }
@@ -174,7 +201,7 @@ bool interpreter::isCommand(std::string input){
     return false;
 }
 
-void interpreter::start_process(std::vector<std::string> command){
+void interpreter::start_process(std::vector<std::string> command, std::string outname, std::string errname, std::string inname){
     pid_t processID = fork();
     pid_t wpid;
     int status;
@@ -190,6 +217,25 @@ void interpreter::start_process(std::vector<std::string> command){
         }
         args[command.size()] = NULL;
         std::string path = curPath + "/" + BIN_PATH + "/" + command.at(0);
+
+        if (!outname.empty()){
+            int fd = open(outname.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+            dup2(fd, STDOUT_FILENO);
+            close(fd);
+        }
+
+        if (!errname.empty()){
+            int fd = open(errname.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+            dup2(fd, STDERR_FILENO);
+            close(fd);
+        }
+
+        if (!inname.empty()){
+            int fd = open(inname.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+            dup2(fd, STDIN_FILENO);
+            close(fd);
+        }
+
         if(boost::filesystem::exists(path)) {
             execvp(path.c_str(), args);
         } else{
