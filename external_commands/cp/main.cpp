@@ -21,22 +21,22 @@ void copy_file(boost::filesystem::path old_file, boost::filesystem::path new_fil
      * discovered by Taras Zelyk.
      */
     if (!fs::exists(old_file)) {
-        std::cout << "No such file: " << old_file << std::endl;
+        std::cerr << "No such file: " << old_file << std::endl;
         return;
     }
     if (fs::exists(new_file) && fs::is_directory(new_file)) {
-        std::cout << "Target " << new_file << " is a directory" << std::endl;
+        std::cerr << "Target " << new_file << " is a directory" << std::endl;
         return;
     }
 
     if (fs::exists(new_file)) {
         if (!force_overwrite) {
-            std::cout << "File " << new_file << " already exists. Do you want to overwrite it?(y/n)"
+            std::cerr << "File " << new_file << " already exists. Do you want to overwrite it?(y/n)"
                       << std::endl;
             std::string choice;
             std::cin >> choice;
             if (choice != "y") {
-                std::cout << "Skipping..." << std::endl;
+                std::cerr << "Skipping..." << std::endl;
                 return;
             }
         }
@@ -90,22 +90,22 @@ int main(int ac, char *av[]) {
                 boost::filesystem::path directory = files[files.size() - 1];
                 files.pop_back();
                 if (!fs::exists(directory) && !fs::is_directory(directory)) {
-                    std::cout << "target " << directory << " does not exist or is not a directory" << std::endl;
+                    std::cerr << "target " << directory << " does not exist or is not a directory" << std::endl;
                     return 0;
                 }
                 for (boost::filesystem::path file:files) {
                     if (!fs::exists(file)) {
-                        std::cout << "No such file: " << file << std::endl;
+                        std::cerr << "No such file: " << file << std::endl;
                         return 0;
                     }
                     copy_file(file, directory / file, force_overwrite);
 
                 }
             } else {
-                std::cout << "Missing destination file operand afrer " << files[0] << std::endl;
+                std::cerr << "Missing destination file operand afrer " << files[0] << std::endl;
             }
         } else {
-            std::cout << "Missing file operand.\n";
+            std::cerr << "Missing file operand.\n";
         }
     }
     catch (std::exception &e) {

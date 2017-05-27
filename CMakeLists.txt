@@ -10,4 +10,5 @@ add_subdirectory(external_commands/ls)
 add_subdirectory(external_commands/mkdir)
 add_subdirectory(external_commands/mv)
 add_subdirectory(external_commands/rm)
+add_subdirectory(external_commands/mygrep)
 

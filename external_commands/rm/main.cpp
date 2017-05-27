@@ -19,22 +19,22 @@ void remove_file(boost::filesystem::path file, bool force_removal = false, bool 
      Force removal bug fix by Sergey Dubovyk.
     */
     if (!fs::exists(file)) {
-        std::cout << "No such file: " << file << std::endl;
+        std::cerr << "No such file: " << file << std::endl;
         return;
     }
     if (fs::is_directory(file) && !remove_directories) {
-        std::cout << "Can not remove " << file << ": It's a directory.\nUse option -R to remove directories. "
+        std::cerr << "Can not remove " << file << ": It's a directory.\nUse option -R to remove directories. "
                   << std::endl;
         return;
     }
 
     if (!force_removal) {
-        std::cout << "Are you sure you want to remove " << file << "?(y/n)"
+        std::cerr << "Are you sure you want to remove " << file << "?(y/n)"
                   << std::endl;
         std::string choice;
         std::cin >> choice;
         if (choice != "y") {
-            std::cout << "Skipping..." << std::endl;
+            std::cerr << "Skipping..." << std::endl;
             return;
         }
     }
@@ -84,7 +84,7 @@ int main(int ac, char *av[]) {
             }
 
         } else {
-            std::cout << "Missing file operand." << std::endl;
+            std::cerr << "Missing file operand." << std::endl;
         }
     }
     catch (std::exception &e) {
