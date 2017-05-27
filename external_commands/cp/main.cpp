@@ -29,14 +29,16 @@ void copy_file(boost::filesystem::path old_file, boost::filesystem::path new_fil
         return;
     }
 
-    if (fs::exists(new_file) && !force_overwrite) {
-        std::cout << "File " << new_file << " already exists. Do you want to overwrite it?(y/n)"
-                  << std::endl;
-        std::string choice;
-        std::cin >> choice;
-        if (choice != "y") {
-            std::cout << "Skipping..." << std::endl;
-            return;
+    if (fs::exists(new_file)) {
+        if (!force_overwrite) {
+            std::cout << "File " << new_file << " already exists. Do you want to overwrite it?(y/n)"
+                      << std::endl;
+            std::string choice;
+            std::cin >> choice;
+            if (choice != "y") {
+                std::cout << "Skipping..." << std::endl;
+                return;
+            }
         }
         fs::remove(new_file);
     }
