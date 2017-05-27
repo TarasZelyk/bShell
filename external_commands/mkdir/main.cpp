@@ -16,7 +16,7 @@ namespace fs = boost::filesystem;
 
 void make_dir(boost::filesystem::path dir) {
     if (fs::exists(dir)) {
-        std::cout << "Can not create directory " << dir << ": File exists" << std::endl;
+        std::cerr << "Can not create directory " << dir << ": File exists" << std::endl;
         return;
     }
     fs::create_directory(dir);
@@ -53,7 +53,7 @@ int main(int ac, char *av[]) {
                 make_dir(dir);
             }
         } else {
-            std::cout << "Missing operand." << std::endl;
+            std::cerr << "Missing operand." << std::endl;
         }
     }
     catch (std::exception &e) {

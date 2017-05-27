@@ -43,7 +43,7 @@ void ls(fs::path path, std::string sort = "N", bool detailed = false,
     std::vector<fs::path> paths;
     if (!fs::exists(path)) {
 
-        std::cout << "No such file or directory." << std::endl;
+        std::cerr << "No such file or directory." << std::endl;
         return;
     }
     if (fs::is_directory(path)) {
@@ -76,12 +76,12 @@ void ls(fs::path path, std::string sort = "N", bool detailed = false,
             else if (sort == "N" || sort == "name")
                 sort_func = sort_by_name;
             else {
-                std::cout << "Invalid argument " << sort << " for '--sort'" << std::endl;
-                std::cout << "  -  `S`, `size` - by size" << std::endl;
-                std::cout << "  -  `t`, `time` - by time" << std::endl;
-                std::cout << "  -  `X`, `size` - by extension" << std::endl;
-                std::cout << "  -  `N`, `name` - by name" << std::endl;
-                std::cout << "  -  `U` - no sorting" << std::endl;
+                std::cerr << "Invalid argument " << sort << " for '--sort'" << std::endl;
+                std::cerr << "  -  `S`, `size` - by size" << std::endl;
+                std::cerr << "  -  `t`, `time` - by time" << std::endl;
+                std::cerr << "  -  `X`, `size` - by extension" << std::endl;
+                std::cerr << "  -  `N`, `name` - by name" << std::endl;
+                std::cerr << "  -  `U` - no sorting" << std::endl;
                 return;
             }
 
@@ -214,9 +214,9 @@ int main(int ac, char *av[]) {
             for (fs::recursive_directory_iterator it(path);
                  it != fs::recursive_directory_iterator(); ++it) {
                 if (fs::is_directory(*it)) {
-                    std::cout << it->path().string() << ":" << std::endl;
+                    std::cerr << it->path().string() << ":" << std::endl;
                     ls(it->path(), sort, detailed, reverse, show_indicators);
-                    std::cout << std::endl;
+                    std::cerr << std::endl;
                 }
             }
         } else {
