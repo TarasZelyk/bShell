@@ -156,29 +156,33 @@ int interpreter::process(std::string command){
     for(int i = 0; i < commands.size(); i++){
         std::vector<std::string> args;
 
-        std::string outname, inname, errname;
-        bool errtoout = false;
+        io_desc iodesc;
+        bool run_in_bckg = false;
         boost::regex splitArgs("((\"|')[^(\"|')]+(\"|')|[^\\s(\"|')]+)");
 
         boost::sregex_token_iterator iter(commands.at(i).begin(), commands.at(i).end(), splitArgs, 0);
         boost::sregex_token_iterator end;
 
-        for(; iter != end; ++iter ) {
-                if (*iter == ">"){
-                    iter++;
-                    outname = *iter;
-                } else if (*iter == "2>"){
-                    iter++;
-                    errname = *iter;
-                } else if (*iter == "<"){
-                    iter++;
-                    inname = *iter;
-                } else if (*iter == "2>&1"){
-                    errtoout = true;
-                }
-                else {
-                    args.push_back(*iter);
-                }
+        for(int position = 0; iter != end; ++iter ) {
+            if (position==1 && *iter == "&"){
+                run_in_bckg = true;
+            }
+            else if (*iter == ">"){
+                iter++;
+                iodesc.out = *iter;
+            } else if (*iter == "2>"){
+                iter++;
+                iodesc.err = *iter;
+            } else if (*iter == "<"){
+                iter++;
+                iodesc.in = *iter;
+            } else if (*iter == "2>&1"){
+                iodesc.errtoout = true;
+            }
+            else {
+                args.push_back(*iter);
+            }
+            position++;
         }
 
         for(int i = 0; i < args.size(); i++){
@@ -187,7 +191,7 @@ int interpreter::process(std::string command){
 
         int retCode;
         if((retCode = executeBuiltIn(args)) == -1){
-            start_process(args, outname, errname, inname, errtoout);
+            start_process(args, iodesc, run_in_bckg);
         }
     }
     return 0;
@@ -204,8 +208,7 @@ bool interpreter::isCommand(std::string input){
     return false;
 }
 
-void interpreter::start_process(std::vector<std::string> command, std::string outname, std::string errname, std::string inname,
-                                bool errtoout){
+void interpreter::start_process(std::vector<std::string> command, io_desc iodesc, bool run_in_bckg){
     pid_t processID = fork();
     pid_t wpid;
     int status;
@@ -222,25 +225,37 @@ void interpreter::start_process(std::vector<std::string> command, std::string ou
         args[command.size()] = NULL;
         std::string path = curPath + "/" + BIN_PATH + "/" + command.at(0);
 
-        if (!outname.empty()){
-            int fd = open(outname.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+        if (run_in_bckg && iodesc.out.empty()){
+            close(STDOUT_FILENO);
+        }
+
+        if (run_in_bckg && iodesc.err.empty()){
+            close(STDERR_FILENO);
+        }
+
+        if (run_in_bckg && iodesc.in.empty()){
+            close(STDIN_FILENO);
+        }
+
+        if (!iodesc.out.empty()){
+            int fd = open(iodesc.out.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
             dup2(fd, STDOUT_FILENO);
             close(fd);
         }
 
-        if (!errname.empty()){
-            int fd = open(errname.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+        if (!iodesc.err.empty()){
+            int fd = open(iodesc.err.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
             dup2(fd, STDERR_FILENO);
             close(fd);
         }
 
-        if (!inname.empty()){
-            int fd = open(inname.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+        if (!iodesc.in.empty()){
+            int fd = open(iodesc.in.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
             dup2(fd, STDIN_FILENO);
             close(fd);
         }
 
-        if (errtoout == true){
+        if (iodesc.errtoout){
             dup2(1, 2);
         }
 
@@ -259,7 +274,9 @@ void interpreter::start_process(std::vector<std::string> command, std::string ou
         // contains the child's process identifier
     }
     do {
-          wpid = waitpid(processID, &status, WUNTRACED);
+          if(!run_in_bckg) {
+              wpid = waitpid(processID, &status, WUNTRACED);
+          }
     } while (!WIFEXITED(status) && !WIFSIGNALED(status));
 }
 

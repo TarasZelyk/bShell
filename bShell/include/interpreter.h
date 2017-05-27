@@ -29,13 +29,20 @@ class interpreter
     protected:
 
     private:
+        struct io_desc{
+            std::string out;
+            std::string err;
+            std::string in;
+            bool errtoout;
+        };
+
         std::string curPath;
         std::vector<std::string> available_commands;
         void update_commands(const std::string& path);
         bool isCommand(std::string input);
         int executeBuiltIn(std::vector<std::string> input);
         void stop(std::vector<std::string> input);
-        void start_process(std::vector<std::string> command, std::string outname, std::string errname, std::string inname, bool errtoout);
+        void start_process(std::vector<std::string> command, io_desc iodesc, bool run_in_bckg);
         void pwd(std::vector<std::string> argv);
         void cd(std::vector<std::string> argv);
         void help();
