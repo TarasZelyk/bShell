@@ -14,7 +14,7 @@ int main(int argc, const char *argv[])
     } else {
         vector<string> arguments(argv + 1, argv + argc);
         string req = "";
-        for(int i = 0; i < arguments.size(); i++){
+        for(size_t i = 0; i < arguments.size(); i++){
             req += arguments.at(i);
             req += (i < arguments.size() - 1) ? " " : "";
         }
@@ -29,10 +29,10 @@ int main(int argc, const char *argv[])
                 args.push_back(*iter);
         }
 
-        for(int i = 0; i < args.size(); i++){
+        for(size_t i = 0; i < args.size(); i++){
             args.at(i) = boost::replace_all_copy(args.at(i), "\"", "");;
         }
-        for(int i = 0; i < arguments.size(); i++){
+        for(size_t i = 0; i < arguments.size(); i++){
             cout << arguments.at(i) << endl;
             process_file(arguments.at(i));
         }

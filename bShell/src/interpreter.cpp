@@ -21,7 +21,7 @@ std::string interpreter::getCurrentPath(){
 }
 
 void interpreter::pwd(std::vector<std::string> argv){
-    for(int i = 1; i < argv.size(); i++){
+    for(size_t i = 1; i < argv.size(); i++){
         if(argv.at(i) == "-h" || argv.at(i) == "--help"){
             std::cout << "Use this command to get current working directory" << std::endl;
             return;
@@ -35,7 +35,7 @@ void interpreter::cd(std::vector<std::string> argv){
      * Bug about storing new cd path in the bShell initial dir fixed by Taras Zelyk,
      * discovered by Nina Bondar.
      */
-    for(int i = 1; i < argv.size(); i++){
+    for(size_t i = 1; i < argv.size(); i++){
         if(argv.at(i) == "-h" || argv.at(i) == "--help"){
             std::cout << "Use this command to get change the working directory" << std::endl;
             return;
@@ -92,14 +92,14 @@ void interpreter::help(){
     std::cout << "Welcome to the beerShell!" << std::endl;
     std::cout << "Available commands are help, cd, pwd, exit and:\n============\n";
     std::vector<std::string> coms = getAvailable_commands();
-    for(int i = 0; i < coms.size(); i++){
+    for(size_t i = 0; i < coms.size(); i++){
         std::cout << coms.at(i) << std::endl;
     }
     std::cout << "============\nHave a great day" << std::endl;
 }
 
 void interpreter::stop(std::vector<std::string> argv){
-    for(int i = 1; i < argv.size(); i++){
+    for(size_t i = 1; i < argv.size(); i++){
         if(argv.at(i) == "-h" || argv.at(i) == "--help"){
             std::cout << "Use this command to get stop working with the beerShell. You can specify the exit code with the following: exit <exit code>" << std::endl;
             return;
@@ -153,7 +153,7 @@ int interpreter::process(std::string command){
         commands.push_back(*commIter);
     }
 
-    for(int i = 0; i < commands.size(); i++){
+    for(size_t i = 0; i < commands.size(); i++){
         std::vector<std::string> args;
 
         io_desc iodesc;
@@ -185,8 +185,8 @@ int interpreter::process(std::string command){
             position++;
         }
 
-        for(int i = 0; i < args.size(); i++){
-            args.at(i) = boost::replace_all_copy(args.at(i), "\"", "");;
+        for(size_t j = 0; j < args.size(); j++){
+            args.at(j) = boost::replace_all_copy(args.at(j), "\"", "");;
         }
 
         int retCode;
@@ -200,7 +200,7 @@ int interpreter::process(std::string command){
 
 bool interpreter::isCommand(std::string input){
     std::vector<std::string> commands = getAvailable_commands();
-    for(int i = 0; i < commands.size(); i++){
+    for(size_t i = 0; i < commands.size(); i++){
         if(commands.at(i) == input){
             return true;
         }
@@ -219,7 +219,7 @@ void interpreter::start_process(std::vector<std::string> command, io_desc iodesc
     else if(processID == 0)
     {
         char *args[command.size()+1];// = malloc((command.size() + 1) * sizeof(char *));
-        for(int i = 0; i < command.size(); i++){
+        for(size_t i = 0; i < command.size(); i++){
             args[i] = (char*) command.at(i).c_str();
         }
         args[command.size()] = NULL;
