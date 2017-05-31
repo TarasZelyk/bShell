@@ -7,6 +7,8 @@ April 2, 2017
 */
 
 #include <fcntl.h>
+#include <regex>
+#include <boost/algorithm/string/trim.hpp>
 #include "interpreter.h"
 
 interpreter::interpreter() {
@@ -143,49 +145,50 @@ int interpreter::executeBuiltIn(std::vector<std::string> args) {
 int interpreter::process(std::string command) {
     std::vector<std::string> commands;
 
-    boost::regex splitCommands("((?:[^\\\\|]+|\\\\\\|?)+)");
+    std::regex comments("#+.*");
+    command = std::regex_replace(command, comments, ""); // remove comments
+
+    boost::regex splitCommands("((?:[^|\"']|\"[^\"]*\"|'[^']*')+)"); // split by pipes '|'
 
     boost::sregex_token_iterator commIter(command.begin(), command.end(), splitCommands, 0);
     boost::sregex_token_iterator endIter;
 
     for (; commIter != endIter; ++commIter) {
-        commands.push_back(*commIter);
+        commands.push_back(commIter->str());
     }
-
     for (size_t i = 0; i < commands.size(); i++) {
         std::vector<std::string> args;
 
         io_desc iodesc;
         bool run_in_bckg = false;
-        boost::regex splitArgs("((\"|')[^(\"|')]+(\"|')|[^\\s(\"|')]+)");
+        boost::regex splitArgs("(\"[^\"]*\"|'[^']*'|[^\\s]+)");
 
         boost::sregex_token_iterator iter(commands.at(i).begin(), commands.at(i).end(), splitArgs, 0);
         boost::sregex_token_iterator end;
-
+        std::cout << "Command " << commands.at(i) << " -> [";
         for (int position = 0; iter != end; ++iter) {
-            if (position == 1 && *iter == "&") {
+            std::string token(iter->str());
+            boost::trim(token);
+            std::cout << token << ", ";
+            if (position == 1 && token == "&") {
                 run_in_bckg = true;
-            } else if (*iter == ">") {
+            } else if (token == ">") {
                 iter++;
-                iodesc.out = *iter;
-            } else if (*iter == "2>") {
+                iodesc.out = token;
+            } else if (token == "2>") {
                 iter++;
-                iodesc.err = *iter;
-            } else if (*iter == "<") {
+                iodesc.err = token;
+            } else if (token == "<") {
                 iter++;
-                iodesc.in = *iter;
-            } else if (*iter == "2>&1") {
+                iodesc.in = token;
+            } else if (token == "2>&1") {
                 iodesc.errtoout = true;
             } else {
-                args.push_back(*iter);
+                args.push_back(token);
             }
             position++;
         }
-
-        for (size_t j = 0; j < args.size(); j++) {
-            args.at(j) = boost::replace_all_copy(args.at(j), "\"", "");;
-        }
-
+        std::cout << "]" << std::endl;
         int retCode;
         if ((retCode = executeBuiltIn(args)) == -1) {
             start_process(args, iodesc, run_in_bckg);
@@ -193,8 +196,6 @@ int interpreter::process(std::string command) {
     }
     return 0;
 }
-
-
 
 
 void interpreter::start_process(std::vector<std::string> command, io_desc iodesc, bool run_in_bckg) {
