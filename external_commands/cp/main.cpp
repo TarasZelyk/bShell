@@ -20,6 +20,10 @@ void copy_file(boost::filesystem::path old_file, boost::filesystem::path new_fil
      * fixed by Sergey Dubovyk,
      * discovered by Taras Zelyk.
      */
+    if (fs::is_directory(old_file)) {
+        std::cerr << "Target " << old_file << " is a directory" << std::endl;
+        return;
+    }
     if (!fs::exists(old_file)) {
         std::cerr << "No such file: " << old_file << std::endl;
         return;
