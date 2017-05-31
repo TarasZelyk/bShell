@@ -52,6 +52,7 @@ void interpreter::export_(std::vector<std::string> argv) {
             return;
         }
     }
+    variables[name] = value;
     setenv(name.c_str(), value.c_str(), 1);
 }
 
