@@ -31,6 +31,30 @@ void interpreter::pwd(std::vector<std::string> argv) {
     std::cout << getCurrentPath() << std::endl;
 }
 
+void interpreter::echo(std::vector<std::string> argv) {
+    for (size_t i = 1; i < argv.size(); i++) {
+        std::cout << argv[i] << ((i != argv.size() - 1) ? " " : "");
+    }
+    std::cout << std::endl;
+}
+
+void interpreter::export_(std::vector<std::string> argv) {
+    std::string name, value;
+    size_t found = argv[1].find("=");
+    if (found != std::string::npos) {
+        name = argv[1].substr(0, found);
+        value = argv[1].substr(found + 1, std::string::npos);
+    } else {
+        name = argv[1];
+        if (variables.find(name) != variables.end()) {
+            value = variables[name];
+        } else {
+            return;
+        }
+    }
+    setenv(name.c_str(), value.c_str(), 1);
+}
+
 void interpreter::cd(std::vector<std::string> argv) {
     /*
      * Bug about storing new cd path in the bShell initial dir fixed by Taras Zelyk,
@@ -129,7 +153,15 @@ int interpreter::executeBuiltIn(std::vector<std::string> args) {
         pwd(args);
         return 0;
     }
+    if (command == "echo") {
+        echo(args);
+        return 0;
+    }
 
+    if (command == "export") {
+        export_(args);
+        return 0;
+    }
     if (command == "cd") {
         cd(args);
         return 0;
@@ -145,11 +177,12 @@ int interpreter::executeBuiltIn(std::vector<std::string> args) {
 int interpreter::process(std::string command) {
     std::vector<std::string> commands;
 
-    std::regex comments("#+.*");
-    command = std::regex_replace(command, comments, ""); // remove comments
-
+    std::regex comments_regex("#+.*");
+    std::regex variables_regex("\\w+=\\w+");
     boost::regex splitCommands("((?:[^|\"']|\"[^\"]*\"|'[^']*')+)"); // split by pipes '|'
+    boost::regex splitArgs("(\"[^\"]*\"|'[^']*'|[^\\s]+)");
 
+    command = std::regex_replace(command, comments_regex, ""); // remove comments
     boost::sregex_token_iterator commIter(command.begin(), command.end(), splitCommands, 0);
     boost::sregex_token_iterator endIter;
 
@@ -161,15 +194,17 @@ int interpreter::process(std::string command) {
 
         io_desc iodesc;
         bool run_in_bckg = false;
-        boost::regex splitArgs("(\"[^\"]*\"|'[^']*'|[^\\s]+)");
 
         boost::sregex_token_iterator iter(commands.at(i).begin(), commands.at(i).end(), splitArgs, 0);
         boost::sregex_token_iterator end;
-        std::cout << "Command " << commands.at(i) << " -> [";
-        for (int position = 0; iter != end; ++iter) {
+        if (DEBUG)
+            std::cout << "Command " << commands.at(i) << " -> [";
+
+        for (; iter != end; ++iter) {
             std::string token(iter->str());
             boost::trim(token);
-            std::cout << token << ", ";
+            if (DEBUG)
+                std::cout << token << ", ";
             if (run_in_bckg) //if there are arguments after '&'
                 return 2;
 
@@ -186,15 +221,29 @@ int interpreter::process(std::string command) {
                 iodesc.in = token;
             } else if (token == "2>&1") {
                 iodesc.errtoout = true;
+            } else if (std::regex_match(token, variables_regex) &&
+                       std::find(args.begin(), args.end(), "export") == args.end()) {
+                size_t found = token.find("=");
+                std::string name = token.substr(0, found);
+                std::string value = token.substr(found + 1, std::string::npos);
+                variables[name] = value;
+
             } else {
                 args.push_back(token);
             }
-            position++;
         }
-        std::cout << "]" << std::endl;
-        int retCode;
-        if ((retCode = executeBuiltIn(args)) == -1) {
-            start_process(args, iodesc, run_in_bckg);
+
+        if (DEBUG)
+            std::cout << "]" << std::endl;
+
+        for (const auto &p : variables) {
+            std::cout << "variables[" << p.first << "] = " << p.second << '\n';
+        }
+        if (args.size() > 0) {
+            int retCode;
+            if ((retCode = executeBuiltIn(args)) == -1) {
+                start_process(args, iodesc, run_in_bckg);
+            }
         }
     }
     return 0;

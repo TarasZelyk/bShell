@@ -18,6 +18,7 @@
 #define die(e) do { fprintf(stderr, "%s\n", e); exit(EXIT_FAILURE); } while (0);
 #define BAD_COMMAND "You entered not a command. Use help to get a list of all commands."
 #define BIN_PATH "bin"
+#define DEBUG 1
 
 class interpreter {
 public:
@@ -41,6 +42,7 @@ private:
 
     std::string curPath;
     std::vector<std::string> available_commands;
+    std::map<std::string, std::string> variables;
 
     void update_commands(const std::string &path);
 
@@ -51,6 +53,10 @@ private:
     void start_process(std::vector<std::string> command, io_desc iodesc, bool run_in_bckg);
 
     void pwd(std::vector<std::string> argv);
+
+    void echo(std::vector<std::string> argv);
+
+    void export_(std::vector<std::string> argv);
 
     void cd(std::vector<std::string> argv);
 
