@@ -179,6 +179,7 @@ int interpreter::process(std::string command) {
 
     std::regex comments_regex("#+.*");
     std::regex variables_regex("\\w+=\\w+");
+    std::regex substitution_regex("\\w+=\\w+");
     boost::regex splitCommands("((?:[^|\"']|\"[^\"]*\"|'[^']*')+)"); // split by pipes '|'
     boost::regex splitArgs("(\"[^\"]*\"|'[^']*'|[^\\s]+)");
 
@@ -229,6 +230,12 @@ int interpreter::process(std::string command) {
                 variables[name] = value;
 
             } else {
+                if (token[0] == '$') {
+                    std::string name = token.substr(1, token.size() - 1);
+                    if (variables.find(name) != variables.end()) {
+                        token = variables[name];
+                    }
+                }
                 args.push_back(token);
             }
         }
@@ -236,8 +243,10 @@ int interpreter::process(std::string command) {
         if (DEBUG)
             std::cout << "]" << std::endl;
 
-        for (const auto &p : variables) {
-            std::cout << "variables[" << p.first << "] = " << p.second << '\n';
+        if (DEBUG) {
+            for (const auto &p : variables) {
+                std::cout << "variables[" << p.first << "] = " << p.second << '\n';
+            }
         }
         if (args.size() > 0) {
             int retCode;
