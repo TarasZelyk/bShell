@@ -13,29 +13,8 @@ int main(int argc, const char *argv[]) {
     if (argc == 1) {
         loop();
     } else {
-        vector<string> arguments(argv + 1, argv + argc);
-        string req = "";
-        for (size_t i = 0; i < arguments.size(); i++) {
-            req += arguments.at(i);
-            req += (i < arguments.size() - 1) ? " " : "";
-        }
-        vector<string> args;
-        cout << req << endl;
-        boost::regex splitArgs("(\"[^\"]+\"|[^\\s\"]+)");
-
-        boost::sregex_token_iterator iter(req.begin(), req.end(), splitArgs, 0);
-        boost::sregex_token_iterator end;
-
-        for (; iter != end; ++iter) {
-            args.push_back(*iter);
-        }
-
-        for (size_t i = 0; i < args.size(); i++) {
-            args.at(i) = boost::replace_all_copy(args.at(i), "\"", "");;
-        }
-        for (size_t i = 0; i < arguments.size(); i++) {
-            cout << arguments.at(i) << endl;
-            process_file(arguments.at(i));
+        for (size_t i = 1; i < argc; i++) {
+            process_file(argv[i]);
         }
     }
     return 0;
@@ -50,6 +29,11 @@ void loop() {
         getline(cin, line);
         if (line != "") {
             retCode = shell.process(line);
+            if (retCode == 2) {
+                std::cerr << "Syntax error!";
+            } else if (retCode != 0) {
+                std::cerr << "Unexpected error!";
+            }
         }
     }
 }
@@ -60,7 +44,12 @@ void process_file(string arg) {
     interpreter shell;
     if (myfile.is_open()) {
         while (getline(myfile, line)) {
-            shell.process(line);
+            int retCode = shell.process(line);
+            if (retCode == 2) {
+                std::cerr << "Syntax error!";
+            } else if (retCode != 0) {
+                std::cerr << "Unexpected error!";
+            }
         }
         myfile.close();
     } else {

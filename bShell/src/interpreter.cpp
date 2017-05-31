@@ -170,7 +170,10 @@ int interpreter::process(std::string command) {
             std::string token(iter->str());
             boost::trim(token);
             std::cout << token << ", ";
-            if (position == 1 && token == "&") {
+            if (run_in_bckg) //if there are arguments after '&'
+                return 2;
+
+            if (token == "&") {
                 run_in_bckg = true;
             } else if (token == ">") {
                 iter++;
