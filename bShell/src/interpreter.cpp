@@ -191,11 +191,19 @@ int interpreter::process(std::string command) {
     for (; commIter != endIter; ++commIter) {
         commands.push_back(commIter->str());
     }
+    int fd[2];
+    io_desc iodesc;
+    iodesc.pipe_in = 0;
+    iodesc.pipe_out = 1;
+
     for (size_t i = 0; i < commands.size(); i++) {
         std::vector<std::string> args;
-
-        io_desc iodesc;
+        iodesc.in = "";
+        iodesc.out = "";
+        iodesc.err = "";
+        iodesc.errtoout = false;
         bool run_in_bckg = false;
+
 
         boost::sregex_token_iterator iter(commands.at(i).begin(), commands.at(i).end(), splitArgs, 0);
         boost::sregex_token_iterator end;
@@ -229,7 +237,6 @@ int interpreter::process(std::string command) {
                 std::string name = token.substr(0, found);
                 std::string value = token.substr(found + 1, std::string::npos);
                 variables[name] = value;
-
             } else {
                 if (token[0] == '$') {
                     std::string name = token.substr(1, token.size() - 1);
@@ -250,9 +257,19 @@ int interpreter::process(std::string command) {
             }
         }
         if (args.size() > 0) {
-            int retCode;
-            if ((retCode = executeBuiltIn(args)) == -1) {
-                start_process(args, iodesc, run_in_bckg);
+            if (i != commands.size() - 1) {
+                pipe(fd);
+                iodesc.pipe_out = fd[1];
+
+                if (executeBuiltIn(args) == -1) {
+                    start_process(args, iodesc, run_in_bckg);
+                }
+                close(fd[1]);
+                iodesc.pipe_in = fd[0];
+            } else {
+                if (executeBuiltIn(args) == -1) {
+                    start_process(args, iodesc, run_in_bckg);
+                }
             }
         }
     }
@@ -267,12 +284,6 @@ void interpreter::start_process(std::vector<std::string> command, io_desc iodesc
     if (processID == -1) {
         // handle the error here
     } else if (processID == 0) {
-        char *args[command.size() + 1];// = malloc((command.size() + 1) * sizeof(char *));
-        for (size_t i = 0; i < command.size(); i++) {
-            args[i] = (char *) command.at(i).c_str();
-        }
-        args[command.size()] = NULL;
-        std::string path = curPath + "/" + BIN_PATH + "/" + command.at(0);
 
         if (run_in_bckg && iodesc.out.empty()) {
             close(STDOUT_FILENO);
@@ -307,24 +318,36 @@ void interpreter::start_process(std::vector<std::string> command, io_desc iodesc
         if (iodesc.errtoout) {
             dup2(1, 2);
         }
+        if (iodesc.pipe_in != 0) {
+            dup2(iodesc.pipe_in, 0);
+            close(iodesc.pipe_in);
+        }
+        if (iodesc.pipe_out != 1) {
+            dup2(iodesc.pipe_out, 1);
+            close(iodesc.pipe_out);
+        }
 
+        char *args[command.size() + 1];// = malloc((command.size() + 1) * sizeof(char *));
+        for (size_t i = 0; i < command.size(); i++) {
+            args[i] = (char *) command.at(i).c_str();
+        }
+        args[command.size()] = NULL;
+
+        std::string path = curPath + "/" + BIN_PATH + "/" + command.at(0);
         if (boost::filesystem::exists(path)) {
             execvp(path.c_str(), args);
         } else {
             execvp(command.at(0).c_str(), args);
         }
-        char errstr[] = "Command not recognized.\nUse help to get.\n";
-        write(STDERR_FILENO, errstr, sizeof(errstr));
+        std::cerr << "Command not recognized." << std::endl << "Use help to get." << std::endl;
         _exit(1);
     } else {
-        // this code only runs in the parent process, and processID
-        // contains the child's process identifier
+        do {
+            if (!run_in_bckg) {
+                wpid = waitpid(processID, &status, WUNTRACED);
+            }
+        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
     }
-    do {
-        if (!run_in_bckg) {
-            wpid = waitpid(processID, &status, WUNTRACED);
-        }
-    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
 }
 
 

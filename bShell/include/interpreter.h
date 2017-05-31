@@ -18,7 +18,7 @@
 #define die(e) do { fprintf(stderr, "%s\n", e); exit(EXIT_FAILURE); } while (0);
 #define BAD_COMMAND "You entered not a command. Use help to get a list of all commands."
 #define BIN_PATH "bin"
-#define DEBUG 1
+#define DEBUG 0
 
 class interpreter {
 public:
@@ -37,6 +37,8 @@ private:
         std::string out;
         std::string err;
         std::string in;
+        int pipe_in;
+        int pipe_out;
         bool errtoout;
     };
 
