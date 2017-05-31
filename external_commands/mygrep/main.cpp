@@ -17,24 +17,29 @@ void grep(boost::filesystem::path file, std::string regexp,
         boost::algorithm::to_lower(search_string);
     }
     std::string line;
-    std::ifstream in(file.c_str());
-    if (in.is_open()) {
-        boost::cmatch what;
-        while (std::getline(in, line)) {
-            if (ignore_case) {
-                boost::algorithm::to_lower(line);
-            }
-            bool matches;
-            if (regexp != "") {
-                matches = boost::regex_match(line.c_str(), what, re);
-            } else {
-                matches = line.find(search_string) != std::string::npos;
-            }
-            if ((matches && !invert_match) || (!matches && invert_match)) {
-                std::cout << line << std::endl;
-            }
+    std::istream *in;
+    if (!file.empty()) {
+        std::ifstream fin(file.c_str());
+        in = &fin;
+    } else {
+        in = &std::cin;
+    }
+    boost::cmatch what;
+    while (std::getline(*in, line)) {
+        if (ignore_case) {
+            boost::algorithm::to_lower(line);
+        }
+        bool matches;
+        if (regexp != "") {
+            matches = boost::regex_match(line.c_str(), what, re);
+        } else {
+            matches = line.find(search_string) != std::string::npos;
+        }
+        if ((matches && !invert_match) || (!matches && invert_match)) {
+            std::cout << line << std::endl;
         }
     }
+
 }
 
 int main(int ac, char *av[]) {
