@@ -221,14 +221,23 @@ int interpreter::process(std::string command) {
             if (token == "&") {
                 run_in_bckg = true;
             } else if (token == ">") {
-                iter++;
-                iodesc.out = token;
+                std::string next_token((++iter)->str());
+                boost::trim(next_token);
+                if (DEBUG)
+                    std::cout << next_token << ", ";
+                iodesc.out = next_token;
             } else if (token == "2>") {
-                iter++;
-                iodesc.err = token;
+                std::string next_token((++iter)->str());
+                boost::trim(next_token);
+                if (DEBUG)
+                    std::cout << next_token << ", ";
+                iodesc.err = next_token;
             } else if (token == "<") {
-                iter++;
-                iodesc.in = token;
+                std::string next_token((++iter)->str());
+                boost::trim(next_token);
+                if (DEBUG)
+                    std::cout << next_token << ", ";
+                iodesc.in = next_token;
             } else if (token == "2>&1") {
                 iodesc.errtoout = true;
             } else if (std::regex_match(token, variables_regex) &&
@@ -258,7 +267,10 @@ int interpreter::process(std::string command) {
         }
         if (args.size() > 0) {
             if (i != commands.size() - 1) {
-                pipe(fd);
+                if (pipe(fd)) {
+                    std::cerr << "Pipe error"<< std::endl;
+                    _exit(1);
+                }
                 iodesc.pipe_out = fd[1];
 
                 if (executeBuiltIn(args) == -1) {
@@ -282,7 +294,7 @@ void interpreter::start_process(std::vector<std::string> command, io_desc iodesc
     pid_t wpid;
     int status;
     if (processID == -1) {
-        // handle the error here
+        std::cerr << "fork() failed!" << std::endl;
     } else if (processID == 0) {
 
         if (run_in_bckg && iodesc.out.empty()) {
@@ -334,11 +346,13 @@ void interpreter::start_process(std::vector<std::string> command, io_desc iodesc
         args[command.size()] = NULL;
 
         std::string path = curPath + "/" + BIN_PATH + "/" + command.at(0);
+
         if (boost::filesystem::exists(path)) {
             execvp(path.c_str(), args);
         } else {
             execvp(command.at(0).c_str(), args);
         }
+
         std::cerr << "Command not recognized." << std::endl << "Use help to get." << std::endl;
         _exit(1);
     } else {
@@ -347,7 +361,12 @@ void interpreter::start_process(std::vector<std::string> command, io_desc iodesc
                 wpid = waitpid(processID, &status, WUNTRACED);
             }
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+
+        if (WIFSIGNALED(status)) {
+            std::cerr << "Child killed (signal " << WTERMSIG(status) << ")" << std::endl;
+
+        } else if (WIFSTOPPED(status)) {
+            std::cerr << "Child stopped (signal " << WSTOPSIG(status) << ")" << std::endl;
+        }
     }
 }
-
-
